@@ -1,0 +1,151 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "060da6ff-c134-4735-b0db-5d2be6d6d30a",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      " * Serving Flask app '__main__'\n",
+      " * Debug mode: off\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.\n",
+      " * Running on http://127.0.0.1:5000\n",
+      "Press CTRL+C to quit\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:15] \"POST /predict_churn HTTP/1.1\" 200 -\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:21] \"POST /predict_churn HTTP/1.1\" 200 -\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:28] \"POST /predict_churn HTTP/1.1\" 200 -\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:36] \"POST /predict_churn HTTP/1.1\" 200 -\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:43] \"POST /predict_churn HTTP/1.1\" 200 -\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but MinMaxScaler was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "C:\\Users\\DELL\\anaconda3\\envs\\DSInterviewpractice\\Lib\\site-packages\\sklearn\\utils\\validation.py:2739: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names\n",
+      "  warnings.warn(\n",
+      "127.0.0.1 - - [22/Dec/2024 18:56:48] \"POST /predict_churn HTTP/1.1\" 200 -\n"
+     ]
+    }
+   ],
+   "source": [
+    "from flask import Flask, request, jsonify\n",
+    "import joblib\n",
+    "\n",
+    "app = Flask(__name__)\n",
+    "model = joblib.load('random_forest_model.pkl') \n",
+    "gender_map = joblib.load('gender_map.pkl')  \n",
+    "payment_method_map = joblib.load('payment_method_map.pkl')\n",
+    "scaler = joblib.load('scaler.pkl')  \n",
+    "\n",
+    "@app.route('/predict_churn', methods=['POST'])\n",
+    "def predict_churn():\n",
+    "    data = request.get_json(force=True)\n",
+    "    gender = data['Gender']\n",
+    "    age = data['Age']\n",
+    "    tenure = data['Tenure']\n",
+    "    monthly_charges = data['MonthlyCharges']\n",
+    "    total_charges = data['TotalCharges']\n",
+    "    payment_method = data['PaymentMethod']\n",
+    "    service_usage_1 = data['ServiceUsage1']\n",
+    "    service_usage_2 = data['ServiceUsage2']\n",
+    "    service_usage_3 = data['ServiceUsage3']\n",
+    "\n",
+    "    avg_service = (service_usage_1 + service_usage_2 + service_usage_3) / 3\n",
+    "    tenure_to_charges_ratio = tenure / total_charges if total_charges != 0 else 0\n",
+    "\n",
+    "    gender_encoded = gender_map.get(gender, -1) \n",
+    "    payment_method_encoded = payment_method_map.get(payment_method, -1)\n",
+    "\n",
+    "    numerical_data = [\n",
+    "        age,\n",
+    "        tenure,\n",
+    "        monthly_charges,\n",
+    "        total_charges,  \n",
+    "        avg_service,  \n",
+    "        tenure_to_charges_ratio  \n",
+    "    ]\n",
+    "\n",
+    "    categorical_data = [\n",
+    "        gender_encoded,  \n",
+    "        payment_method_encoded \n",
+    "    ]\n",
+    "    \n",
+    "    \n",
+    "    numerical_data_scaled = scaler.transform([numerical_data])[0]  \n",
+    "\n",
+    "    \n",
+    "    customer_data = categorical_data + numerical_data_scaled.tolist()  \n",
+    "\n",
+    "    \n",
+    "    customer_data = [customer_data]\n",
+    "\n",
+    "    prediction = model.predict_proba(customer_data)[:, 1]  \n",
+    "\n",
+    "    if (prediction>0.5) :\n",
+    "        ans=\"Yes\" \n",
+    "    else :\n",
+    "        ans=\"No\"\n",
+    "    return jsonify({'Churn': ans})\n",
+    "\n",
+    "if __name__ == \"__main__\":\n",
+    "    app.run(debug=False)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "277adb9e-9c44-4a8b-ada3-882d8c4a73cd",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
